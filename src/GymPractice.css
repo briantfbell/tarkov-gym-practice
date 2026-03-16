@@ -1,0 +1,55 @@
+body {
+  background-color: #1a1a1a;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.summary-card {
+  color: white;
+}
+
+.rep-counter {
+  color: white;
+}
+
+.gym-container {
+  border: 2px solid yellow; /* Temporary border */
+  min-width: 500px;
+  min-height: 500px;
+}
+
+.gym-container {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  background-color: #111;
+  border: 1px solid #333;
+  margin: 0 auto;
+  overflow: visible; /* Lets the line start from outside */
+}
+
+.base-frame,
+.moving-line,
+.center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+
+  /* Placement Modification */
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+/* TEMP - success/failure flashes */
+.gym-container.success {
+  filter: drop-shadow(0 0 15px rgba(0, 255, 0, 0.7));
+}
+
+.gym-container.fail {
+  filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.7));
+}

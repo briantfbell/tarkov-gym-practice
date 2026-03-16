@@ -1,7 +1,9 @@
+import Gym_Functionality from "./Components/Gym_Functionality.jsx";
+
 function App() {
   return (
-    <div>
-      <h1>Hello React</h1>
+    <div className="App">
+      <Gym_Functionality />
     </div>
   );
 }
