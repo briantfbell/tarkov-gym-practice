@@ -5,20 +5,34 @@ import HexFrame from "../assets/Hexagon_Frame_Gray.png";
 import MovingHex from "../assets/Moving_Hex.png";
 import MouseIcon from "../assets/MouseIcon.png";
 
-// Measurements from your UI Hexagon Scaling chart (Height / 4.00 baseline)
-const SCALING_DATA = [
+// Hard-coded goal hex heights (in inches); measured from frames imposed onto a 500px x 500px Photoshop canvas
+const HEIGHTS = [
   4.0, 3.78, 3.56, 3.31, 3.08, 2.85, 2.63, 2.49, 2.43, 2.33, 2.31, 2.26, 1.88,
   1.79, 1.75,
-].map((height) => parseFloat((height / 4.0).toFixed(3)));
+];
 
-const REP_CONFIGS = SCALING_DATA.map((frameScale, i) => {
-  // Maintaining your speed ramp logic: starts at 0.005, increases by 0.0004 per rep
-  const speed = 0.005 + i * 0.0004;
+// Measured Durations (Seconds from start to outermost border)
+const DURATIONS = [
+  0.36, 0.33, 0.38, 0.41, 0.47, 0.41, 0.45, 0.4, 0.41, 0.37, 0.34, 0.31, 0.32,
+  0.29, 0.29,
+];
+
+// Generating the 15 Custom Instances
+const REP_INSTANCES = HEIGHTS.map((h, i) => {
+  const frameScale = parseFloat((h / 4.0).toFixed(3));
+  const outerRatio = 0.85;
+  const distanceToOuter = 1.0 - frameScale * outerRatio;
+
+  // Speed = Distance / (Duration * 60 FPS)
+  const speed = distanceToOuter / (DURATIONS[i] * 60);
+
   return {
-    id: i + 1,
+    rep: i + 1,
     frameScale: frameScale,
-    speed: parseFloat(speed.toFixed(3)),
-    outerRatio: 0.85,
+    speed: parseFloat(speed.toFixed(5)),
+    // If you remake assets, you can change this to: asset: `/assets/HexFrame_${i+1}.png`
+    asset: HexFrame,
+    outerRatio: outerRatio,
     innerRatio: 0.726,
     failRatio: 0.725,
   };
@@ -30,22 +44,22 @@ const TarkovGymPractice = () => {
   const [status, setStatus] = useState("active");
   const [score, setScore] = useState(0);
   const [sessionComplete, setSessionComplete] = useState(false);
+
   const requestRef = useRef();
   const isProcessingRef = useRef(false);
 
-  const config = REP_CONFIGS[currentRep] || REP_CONFIGS[0];
+  // Selects the specific instance for the current rep
+  const activeInstance = REP_INSTANCES[currentRep];
 
-  // These now calculate dynamically based on your Photoshop measurements
-  const actualOuter = config.frameScale * config.outerRatio;
-  const actualInner = config.frameScale * config.innerRatio;
-  const actualFail = config.frameScale * config.failRatio;
+  const actualOuter = activeInstance.frameScale * activeInstance.outerRatio;
+  const actualInner = activeInstance.frameScale * activeInstance.innerRatio;
+  const actualFail = activeInstance.frameScale * activeInstance.failRatio;
 
   const animate = () => {
     if (isProcessingRef.current || status !== "active") return;
 
     setScale((prevScale) => {
-      const nextScale = prevScale - config.speed;
-
+      const nextScale = prevScale - activeInstance.speed;
       if (nextScale <= actualFail) {
         handleResult(false);
         return actualFail;
@@ -116,8 +130,7 @@ const TarkovGymPractice = () => {
   return (
     <div className="wrapper">
       <div className="rep-counter">
-        REP: {currentRep + 1} / 15 | SUCCESSES: {score} | SCALE:{" "}
-        {scale.toFixed(3)}
+        REP: {activeInstance.rep} / 15 | SUCCESSES: {score}
       </div>
 
       <div
@@ -125,11 +138,11 @@ const TarkovGymPractice = () => {
         onClick={() => status === "active" && handleResult(true)}
       >
         <img
-          src={HexFrame}
+          src={activeInstance.asset} // Uses the custom asset per rep
           className="base-frame"
           alt="frame"
           style={{
-            transform: `translate(-50%, -50%) scale(${config.frameScale})`,
+            transform: `translate(-50%, -50%) scale(${activeInstance.frameScale})`,
           }}
         />
         <img
