@@ -5,14 +5,18 @@ import HexFrame from "../assets/Hexagon_Frame_Gray.png";
 import MovingHex from "../assets/Moving_Hex.png";
 import MouseIcon from "../assets/MouseIcon.png";
 
-const REP_CONFIGS = Array.from({ length: 15 }, (_, i) => {
-  // Change the hex size each level (fixed interval - likely need to edit according to actual Tarkov gym)
-  const frameScale = 1.0 - i * 0.05;
-  // Changes gym speed each level - same ( ) as above
+// Measurements from your UI Hexagon Scaling chart (Height / 4.00 baseline)
+const SCALING_DATA = [
+  4.0, 3.78, 3.56, 3.31, 3.08, 2.85, 2.63, 2.49, 2.43, 2.33, 2.31, 2.26, 1.88,
+  1.79, 1.75,
+].map((height) => parseFloat((height / 4.0).toFixed(3)));
+
+const REP_CONFIGS = SCALING_DATA.map((frameScale, i) => {
+  // Maintaining your speed ramp logic: starts at 0.005, increases by 0.0004 per rep
   const speed = 0.005 + i * 0.0004;
   return {
     id: i + 1,
-    frameScale: parseFloat(frameScale.toFixed(3)),
+    frameScale: frameScale,
     speed: parseFloat(speed.toFixed(3)),
     outerRatio: 0.85,
     innerRatio: 0.726,
@@ -30,19 +34,19 @@ const TarkovGymPractice = () => {
   const isProcessingRef = useRef(false);
 
   const config = REP_CONFIGS[currentRep] || REP_CONFIGS[0];
+
+  // These now calculate dynamically based on your Photoshop measurements
   const actualOuter = config.frameScale * config.outerRatio;
   const actualInner = config.frameScale * config.innerRatio;
   const actualFail = config.frameScale * config.failRatio;
 
   const animate = () => {
-    // If the rep is already over, stop the loop entirely
     if (isProcessingRef.current || status !== "active") return;
 
     setScale((prevScale) => {
       const nextScale = prevScale - config.speed;
 
       if (nextScale <= actualFail) {
-        // Trigger auto-fail
         handleResult(false);
         return actualFail;
       }
@@ -74,7 +78,6 @@ const TarkovGymPractice = () => {
       setStatus("fail");
     }
 
-    // Reset window
     setTimeout(() => {
       if (currentRep < 14) {
         setScale(1.0);
@@ -93,13 +96,13 @@ const TarkovGymPractice = () => {
     setScale(1.0);
     setSessionComplete(false);
     setStatus("active");
+    isProcessingRef.current = false;
   };
 
   if (sessionComplete) {
     return (
       <div className="wrapper">
         <div className="summary-card">
-          {/* Either temporary or will make prettier later */}
           <h1>Workout Complete</h1>
           <p>Successful Reps: {score} / 15</p>
           <button className="restart-btn" onClick={restartSession}>
@@ -112,7 +115,6 @@ const TarkovGymPractice = () => {
 
   return (
     <div className="wrapper">
-      {/* Temporary - scale let's you do an 'eyeball it' test to see if it looks right */}
       <div className="rep-counter">
         REP: {currentRep + 1} / 15 | SUCCESSES: {score} | SCALE:{" "}
         {scale.toFixed(3)}
